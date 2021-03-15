@@ -25,9 +25,12 @@ def main():
     pop_table = soup.find_all('table')[3]
     rows = pop_table.find_all('tr')[1:]
     objects = []
-    for row in rows:
+    for n, row in enumerate(rows):
         cols = row.find_all('td')
-        state = cols[0].find('a').text
+        if n == 11: # Georgia
+            state = cols[0].find_all('a')[1].text
+        else:
+            state = cols[0].find('a').text
         if state in states:
             for i, year in enumerate(range(1960, 2020, 10)):
                 j = i + 1
