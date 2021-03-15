@@ -20,7 +20,7 @@ driver = webdriver.Chrome(options=chrome_options)
 driver.get('https://www.ssa.gov/oact/babynames/state/')
 
 # Range variables
-states = [ state.abbr for state in us.states.STATES ]
+states = [ state.abbr for state in us.states.STATES ] + ['DC']
 year_range = (2019, 1960)
 
 
@@ -77,7 +77,6 @@ def recreate_database():
 # Main Script #
 ###############
 def main():
-    recreate_database()
 
     first_year = year_range[0]
     last_year = year_range[1]

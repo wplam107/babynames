@@ -18,3 +18,17 @@ class NameEntry(Base):
     def __repr__(self):
         return "<NameEntry(state={}, year={}, name={}, gender={}, births={})>"\
             .format(self.state, self.year, self.name, self.gender, self.births)
+
+class StateEntry(Base):
+    __tablename__ = 'state_pop'
+    state = Column(String)
+    year = Column(Integer)
+    population = Column(Integer)
+    __table_args__ = (
+        PrimaryKeyConstraint('state', 'year'),
+        {},
+    )
+
+    def __repr__(self):
+        return "<StateEntry(state={}, year={}, population={})>"\
+            .format(self.state, self.year, self.population)
