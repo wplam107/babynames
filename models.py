@@ -32,3 +32,17 @@ class StateEntry(Base):
     def __repr__(self):
         return "<StateEntry(state={}, year={}, population={})>"\
             .format(self.state, self.year, self.population)
+
+class Estimate(Base):
+    __tablename__ = 'estimates'
+    state = Column(String)
+    year = Column(Integer)
+    population = Column(Integer)
+    __table_args__ = (
+        PrimaryKeyConstraint('state', 'year'),
+        {},
+    )
+
+    def __repr__(self):
+        return "<Estimate(state={}, year={}, population={})>"\
+            .format(self.state, self.year, self.population)
