@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, PrimaryKeyConstraint
+from sqlalchemy import Column, Integer, String, JSON, PrimaryKeyConstraint
 
 Base = declarative_base()
 
@@ -46,3 +46,16 @@ class Estimate(Base):
     def __repr__(self):
         return "<Estimate(state={}, year={}, population={})>"\
             .format(self.state, self.year, self.population)
+
+class NameJSON(Base):
+    __tablename__ = 'name_json'
+    name = Column(String)
+    data = Column(JSON)
+    __table_args__ = (
+        PrimaryKeyConstraint('name'),
+        {},
+    )
+
+    def __repr__(self):
+        return "<NameJSON(name={}, data=JSON)>"\
+            .format(self.name)
