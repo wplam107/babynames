@@ -1,0 +1,8 @@
+gunicorn
+pandas
+plotly
+dash
+sqlalchemy
+psycopg2
+us
+psycopg2-binary
