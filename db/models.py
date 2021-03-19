@@ -51,6 +51,7 @@ class NameJSON(Base):
     __tablename__ = 'name_json'
     name = Column(String)
     data = Column(JSON)
+    birth_totals = Column(Integer)
     __table_args__ = (
         PrimaryKeyConstraint('name'),
         {},

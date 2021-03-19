@@ -11,7 +11,7 @@ engine = create_engine(DATABASE_URI, executemany_mode='batch')
 Session = sessionmaker(bind=engine)
 states = [ f'{state.name}' for state in us.states.STATES ] + ['District of Columbia']
 
-def get_totals(name):
+def get_ys_totals(name):
     '''
     Function to retrieve name entries.
     '''
@@ -31,6 +31,21 @@ def get_totals(name):
          'births': v.births}
         for v in q
     ]
+
+def get_birth_totals(name):
+    '''
+    Function to retrieve total births by name entry.
+    '''
+
+    s = Session()
+    q = s.query(sa.func.sum(NameEntry.births)).\
+        filter(NameEntry.name == name).\
+        all()
+
+    s.close()
+
+    return q[0][0]
+
 
 def to_json(name_data):
     '''
@@ -63,11 +78,13 @@ def main():
 
     objects = []
     for name_entry in all_names:
-        totals = get_totals(name_entry)
+        totals = get_ys_totals(name_entry)
         json_data = to_json(totals)
+        birth_totals = get_birth_totals(name_entry)
         obj = NameJSON(
             name=name_entry,
-            data=json_data
+            data=json_data,
+            birth_totals=birth_totals
         )
         objects.append(obj)
 
