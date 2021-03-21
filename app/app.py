@@ -1,64 +1,17 @@
-import os
 import dash_core_components as dcc
 import dash_html_components as html
 import dash
-from dash.dependencies import Input, Output
-
-import plotly.express as px
+from dash.dependencies import Input, Output, State
 
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
-import sqlalchemy as sa
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from db import NAMES, STATES, get_name
 
-from models import Base, Estimate, NameJSON
-from cloud_config import DATABASE_URI
-
-import us
-
-# DATABASE_URL = os.environ['DATABASE_URL']
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-engine = create_engine(DATABASE_URI)
-Session = sessionmaker(bind=engine)
-s = Session()
-
-names = [ name[0] for name in s.query(NameJSON.name).all() ]
-states = [ f'{state.name}' for state in us.states.STATES ] + ['District of Columbia']
-
-def possible_names(name):
-    q = s.query(NameJSON.name).filter(NameJSON.name.ilike(f'%{name}%')).\
-    order_by(NameJSON.birth_totals.desc()).\
-    limit(10)
-    results = [ v[0] for v in q ]
-    
-    return results
-
-def get_name(name):
-    q = s.query(NameJSON).\
-    filter(NameJSON.name == name).\
-    all()
-
-    female = pd.DataFrame(q[0].data['Female']).fillna(0).reset_index().rename(columns={'index': 'year'})
-    male = pd.DataFrame(q[0].data['Male']).fillna(0).reset_index().rename(columns={'index': 'year'})
-
-    female = female.melt(
-        id_vars='year',
-        value_vars=[ col for col in female.columns if col != 'year' ],
-        var_name='state',
-        value_name='births')
-    female['gender'] = 'Female'
-    male = male.melt(
-        id_vars='year',
-        value_vars=[ col for col in male.columns if col != 'year' ],
-        var_name='state',
-        value_name='births')
-    male['gender'] = 'Male'
-
-    df = pd.concat([female, male])
-    
-    return df
-
+name_options = [ {'label': name, 'value': name} for name in NAMES ]
+state_options = [ {'label': state, 'value': state} for state in STATES ]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
@@ -71,7 +24,28 @@ initial_fig = px.line(
 app.layout = html.Div(
     [
         html.Br(),
-        dcc.Dropdown(id="name-dropdown"),
+        html.Label(
+            [
+                'Choose Name(s):',
+                dcc.Dropdown(
+                    id="name-dropdown",
+                    placeholder="Select Name",
+                    multi=True
+                ),
+            ]
+        ),
+        html.Label(
+            [
+                'Choose State(s):',
+                dcc.Dropdown(
+                    id="state-dropdown",
+                    options=state_options,
+                    placeholder='All',
+                    multi=True,
+                ),
+            ]
+        ),
+        dcc.Checklist(id="rate-checkbox", options=[{'label': 'Per Million (Pop.)', 'value': 'rate'}]),
         html.Br(),
         dcc.Graph(
             id="name-plot",
@@ -83,34 +57,50 @@ app.layout = html.Div(
 
 @app.callback(
     Output("name-dropdown", "options"),
-    Input("name-dropdown", "search_value")
+    Input("name-dropdown", "search_value"),
+    State("name-dropdown", "value")
 )
-def update_dropdown(search_value):
+def update_nd(search_value, value):
     if not search_value:
         raise dash.exceptions.PreventUpdate
-    return [ {'label': v, 'value': v} for v in possible_names(search_value) ]
+    return [
+        o for o in name_options
+        if search_value in o['label'] or o['value'] in (value or [])
+    ]
 
 @app.callback(
     Output("name-plot", "figure"),
-    Input("name-dropdown", "value")
+    Input("name-dropdown", "value"),
+    Input("state-dropdown", "value"),
+    Input("rate-checkbox", "value")
 )
-def update_graph(value):
-    if not value:
-        raise dash.exceptions.PreventUpdate
-
+def update_graph(value, s_ids, rate):
     if value:
-        df = get_name(value)
-        groups = ['year', 'gender']
-        fig = px.line(
-            df.groupby(groups)['births'].sum().reset_index(),
-            x='year',
-            y='births',
-            line_group='gender',
-            color='gender',
-            color_discrete_map={'Female': 'red', 'Male': 'blue'}
-        )
-
-    return fig
+        fig = go.Figure(layout_xaxis_range=[1960, 2020])
+        for val in value:
+            df = get_name(val)
+            groups = ['year']
+            if s_ids:
+                groups.append('state')
+                data = df.groupby(groups)['births'].sum().reset_index()
+                for s_id in s_ids:
+                    fig.add_trace(go.Scatter(
+                        name=f'Name: {val}, State: {s_id}',
+                        x=data.loc[data['state'] == s_id]['year'],
+                        y=data.loc[data['state'] == s_id]['births'],
+                        mode='markers+lines'
+                    ))
+            else:
+                data = df.groupby(groups)['births'].sum().reset_index()
+                fig.add_trace(go.Scatter(
+                    name=f'Name: {val}',
+                    x=data['year'],
+                    y=data['births'],
+                    mode='markers+lines'
+                ))
+        return fig
+    else:
+        return initial_fig
 
 
 if __name__ == '__main__':
