@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from db import NAMES, STATES, get_name
+from db import NAMES, STATES, POP_DF, get_name
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 name_options = [ {'label': name, 'value': name} for name in NAMES ]
@@ -77,28 +77,64 @@ def update_nd(search_value, value):
 def update_graph(value, s_ids, rate):
     if value:
         fig = go.Figure(layout_xaxis_range=[1960, 2020])
+        if rate:
+            title = 'Baby Name by Population'
+            y_title = 'Births / 1M (pop.)'
+        else:
+            title = 'Baby Name(s) Totals'
+            y_title = 'Total Births'
+        fig.update_layout(
+            title=title,
+            xaxis_title='Year',
+            yaxis_title=y_title,
+            legend_title='Name, Year Legend'
+        )
+
+        # For each name
         for val in value:
             df = get_name(val)
             groups = ['year']
+            
+            # If state(s) is selected
             if s_ids:
                 groups.append('state')
                 data = df.groupby(groups)['births'].sum().reset_index()
+                data = data.merge(POP_DF, on=['year', 'state'], how='left')
+
+                # For each state
                 for s_id in s_ids:
+                    y = data.loc[data['state'] == s_id]['births']
+
+                    # If per 1M selected
+                    if rate:
+                        y = y / (data.loc[data['state'] == s_id]['population'] / 1000000)
+
                     fig.add_trace(go.Scatter(
                         name=f'Name: {val}, State: {s_id}',
                         x=data.loc[data['state'] == s_id]['year'],
-                        y=data.loc[data['state'] == s_id]['births'],
+                        y=y,
                         mode='markers+lines'
                     ))
+
             else:
                 data = df.groupby(groups)['births'].sum().reset_index()
+                y = data['births']
+
+                # If per 1M selected
+                if rate:
+                    pop = POP_DF.groupby('year')['population'].sum().reset_index()
+                    data = data.merge(pop, on=['year'], how='left')
+                    y = y / (data['population'] / 1000000)  
+
                 fig.add_trace(go.Scatter(
                     name=f'Name: {val}',
                     x=data['year'],
-                    y=data['births'],
+                    y=y,
                     mode='markers+lines'
                 ))
+
         return fig
+
     else:
         return initial_fig
 
