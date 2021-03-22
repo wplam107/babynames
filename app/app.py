@@ -96,7 +96,9 @@ def update_nd(search_value, value):
         raise dash.exceptions.PreventUpdate
     return [
         o for o in name_options
-        if search_value in o['label'] or o['value'] in (value or [])
+        if (search_value.lower() or search_value)
+        in o['label'].lower() or o['value'].lower() or o['label'] or o['value']
+        in (value or [])
     ]
 
 @app.callback(
@@ -111,21 +113,19 @@ def update_graph(value, s_ids, rate):
         fig = go.Figure(layout_xaxis_range=[1960, 2020])
         map_fig = go.Figure()
         if rate:
-            title = 'Baby Name by Population'
+            title = 'Baby Name by Population:'
             y_title = 'Births / 1M (pop.)'
         else:
-            title = 'Baby Name(s) Totals'
+            title = 'Baby Name(s) Totals:'
             y_title = 'Total Births'
-        fig.update_layout(
-            title=title,
-            xaxis_title='Year',
-            yaxis_title=y_title,
-            legend_title='Name Legend'
-        )
 
         # For each name
         for val in value:
-            df = get_name(val)
+            df = get_name(val.capitalize())
+            title = title + f' {val}'
+            if val != value[-1]:
+                title = title + ', '
+                
             groups = ['year'] # Groups in case add gender splits
 
             # Make map plot of first entered name
@@ -199,6 +199,12 @@ def update_graph(value, s_ids, rate):
                     mode='markers+lines'
                 ))
 
+        fig.update_layout(
+            title=title,
+            xaxis_title='Year',
+            yaxis_title=y_title,
+            legend_title='Name Legend'
+        )
         return [fig, map_fig]
 
     else:
