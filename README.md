@@ -12,6 +12,8 @@ Visualizations for the most popular baby names in the United States by state by 
 
 ## Notes:
 - A name is searchable if it has made the top 100 baby names of any state (and District of Columbia) from 1960 through 2019.
+- Dash app in ```app``` directory.
+- Local database and data scrape files located in ```db``` directory.
 - Notebooks:
   - Creating Population Estimates by State: [```pop_est_nb.ipynb```](https://github.com/wplam107/babynames/blob/main/db/pop_est_nb.ipynb)
   - Data Transformation for Heroku PostgreSQL: [```etl_to_json_nb.ipynb```](https://github.com/wplam107/babynames/blob/main/db/etl_to_json_nb.ipynb)
