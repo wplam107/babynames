@@ -4,7 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from models import Base, Estimate, NameJSON
-from cloud_config import DATABASE_URI
+# from cloud_config import DATABASE_URI
+from config import DATABASE_URI
 
 import us
 
@@ -15,6 +16,7 @@ s = Session()
 # Unique names query and state names
 NAMES = [ name[0] for name in s.query(NameJSON.name).all() ]
 STATES = [ f'{state.name}' for state in us.states.STATES ] + ['District of Columbia']
+STATE_ABBR = [ f'{state.abbr}' for state in us.states.STATES ] + ['DC']
 
 # Retrieve state population estimates
 q = s.query(Estimate).all()
