@@ -1,2 +1,2 @@
 # Local Database
-Local PostgreSQL database. Database pushed to Heroku PostgreSQL for app.
+Local PostgreSQL database. ```name_db``` database pushed to Heroku PostgreSQL for app.
