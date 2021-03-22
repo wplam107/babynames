@@ -1,7 +1,10 @@
 # Baby Names Web App/Dashboard
 - App: [Heroku](https://us-babynames.herokuapp.com/)
-- Data: [Top 100 Baby Names by State by Year - US Social Security Office](https://www.ssa.gov/oact/babynames/), [Historical US Populations (by state) - Wikipedia](https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population), [Recent Decade US Populations (by state) - US Census Bureau](https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html)
-- Packages: [Dash](https://plotly.com/), [Plotly](https://plotly.com/), [SQLAlchemy](https://www.sqlalchemy.org/), [Pandas](https://pandas.pydata.org/), [Us](https://github.com/unitedstates/python-us)
+- Data:
+  - Top 100 Baby Names by State by Year: [US Social Security Office](https://www.ssa.gov/oact/babynames/)
+  - Historical US Populations (by state): [Wikipedia](https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population)
+  - Recent Decade US Populations (by state): [US Census Bureau](https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html)
+- Packages: [Dash](https://plotly.com/), [Plotly](https://plotly.com/), [SQLAlchemy](https://www.sqlalchemy.org/), [Pandas](https://pandas.pydata.org/), [US](https://github.com/unitedstates/python-us)
 - Database: PostgreSQL
 
 ## Notes:
