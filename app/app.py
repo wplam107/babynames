@@ -21,6 +21,9 @@ initial_fig = px.line(
     range_x=[1960, 2019],
     range_y=[0, 1000]
 )
+initial_fig.update_layout(
+    title_text='Baby Names by Year'
+)
 
 initial_map = go.Figure(data=go.Choropleth(
     locations=STATE_ABBR,
