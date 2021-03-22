@@ -7,6 +7,9 @@
   - Historical US Populations (by state): [Wikipedia](https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_historical_population)
   - Recent Decade US Populations (by state): [US Census Bureau](https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html)
 
+## Purpose:
+Visualizations for the most popular baby names in the United States by state by year.
+
 ## Notes:
 - A name is searchable if it has made the top 100 baby names of any state (and District of Columbia) from 1960 through 2019.
 - Notebooks:
