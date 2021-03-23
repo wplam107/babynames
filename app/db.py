@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from models import Base, Estimate, NameJSON
-# from cloud_config import DATABASE_URI
-from config import DATABASE_URI
+from cloud_config import DATABASE_URI
+# from config import DATABASE_URI
 
 import us
 

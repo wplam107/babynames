@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from db import NAMES, STATES, STATE_ABBR, POP_DF, get_name
+from search import find_alts
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 name_options = [ {'label': name, 'value': name} for name in NAMES ]
@@ -45,6 +46,7 @@ app.layout = html.Div(
                 ), href='https://github.com/wplam107/babynames'
             )
         ]),
+        html.P('Data: US Social Security Office, US Census Bureau'),
         html.Br(),
         html.Label(
             [
@@ -67,7 +69,21 @@ app.layout = html.Div(
                 ),
             ]
         ),
-        dcc.Checklist(id="rate-checkbox", options=[{'label': 'Per Million (Pop.)', 'value': 'rate'}]),
+        html.Div(children=[
+            dcc.Checklist(
+                id="rate-checkbox",
+                options=[
+                    {'label': 'Per Million (Pop.)', 'value': 'rate'},
+                ],
+            ),
+            dcc.Checklist(
+                id="alts-checkbox",
+                options=[
+                    {'label': 'Include Alternative Spellings', 'value': 'alt_names'},
+                ]
+            ),
+        ], style={"display": "flex"}),
+        html.Div(id="alt-labels"),
         html.Br(),
         html.Div(children=
             [
@@ -96,36 +112,55 @@ def update_nd(search_value, value):
         raise dash.exceptions.PreventUpdate
     return [
         o for o in name_options
-        if (search_value.lower() or search_value)
-        in o['label'].lower() or o['value'].lower() or o['label'] or o['value']
-        in (value or [])
+        if search_value.lower() in o['value'].lower()
+        or o['value'] in (value or [])
     ]
 
 @app.callback(
     Output("name-plot", "figure"),
     Output("map-plot", "figure"),
+    Output("alt-labels", "children"),
     Input("name-dropdown", "value"),
     Input("state-dropdown", "value"),
-    Input("rate-checkbox", "value")
+    Input("rate-checkbox", "value"),
+    Input("alts-checkbox", "value"),
 )
-def update_graph(value, s_ids, rate):
+def update_graph(value, s_ids, rate, alt_names):
     if value:
         fig = go.Figure(layout_xaxis_range=[1960, 2020])
         map_fig = go.Figure()
         if rate:
-            title = 'Baby Name by Population:'
+            title = 'Baby Name(s) Births by Population:'
             y_title = 'Births / 1M (pop.)'
         else:
-            title = 'Baby Name(s) Totals:'
+            title = 'Baby Name(s) Birth Totals:'
             y_title = 'Total Births'
+
+        alt_label = ''
+        if alt_names:
+            alt_label = 'Alternatives Include:'
 
         # For each name
         for val in value:
             df = get_name(val.capitalize())
             title = title + f' {val}'
             if val != value[-1]:
-                title = title + ', '
-                
+                title = title + ','
+
+            if alt_names:
+                alternatives = [
+                    name.capitalize() for name in find_alts(val.lower(), alts=[], checked=[])
+                    if name.lower() != val.lower()
+                ]
+
+                alt_label = alt_label + f' {alternatives}'
+                if val != value[-1]:
+                    alt_label = alt_label + ','
+                    
+                for alt in alternatives:
+                    df = pd.concat([df, get_name(alt)])
+                df = df.groupby(['year', 'state'])['births'].sum().reset_index()
+
             groups = ['year'] # Groups in case add gender splits
 
             # Make map plot of first entered name
@@ -205,10 +240,10 @@ def update_graph(value, s_ids, rate):
             yaxis_title=y_title,
             legend_title='Name Legend'
         )
-        return [fig, map_fig]
+        return [fig, map_fig, alt_label]
 
     else:
-        return [initial_fig, initial_map]
+        return [initial_fig, initial_map, None]
 
 
 if __name__ == '__main__':
