@@ -3,6 +3,7 @@ import dash_html_components as html
 import dash
 from dash.dependencies import Input, Output, State
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -82,6 +83,12 @@ app.layout = html.Div(
                     {'label': 'Include Alternative Spellings', 'value': 'alt_names'},
                 ]
             ),
+            dcc.Checklist(
+                id="color-checkbox",
+                options=[
+                    {'label': 'Log Color Spectrum', 'value': 'log_color'},
+                ]
+            ),
         ], style={"display": "flex"}),
         html.Div(id="alt-labels"),
         html.Br(),
@@ -102,6 +109,7 @@ app.layout = html.Div(
     ]
 )
 
+# Update name dropdown options
 @app.callback(
     Output("name-dropdown", "options"),
     Input("name-dropdown", "search_value"),
@@ -116,6 +124,7 @@ def update_nd(search_value, value):
         or o['value'] in (value or [])
     ]
 
+# Update both plots
 @app.callback(
     Output("name-plot", "figure"),
     Output("map-plot", "figure"),
@@ -124,8 +133,9 @@ def update_nd(search_value, value):
     Input("state-dropdown", "value"),
     Input("rate-checkbox", "value"),
     Input("alts-checkbox", "value"),
+    Input("color-checkbox", "value"),
 )
-def update_graph(value, s_ids, rate, alt_names):
+def update_graph(value, s_ids, rate, alt_names, log_color):
     if value:
         fig = go.Figure(layout_xaxis_range=[1960, 2020])
         map_fig = go.Figure()
@@ -156,7 +166,7 @@ def update_graph(value, s_ids, rate, alt_names):
                 alt_label = alt_label + f' {alternatives}'
                 if val != value[-1]:
                     alt_label = alt_label + ','
-                    
+
                 for alt in alternatives:
                     df = pd.concat([df, get_name(alt)])
                 df = df.groupby(['year', 'state'])['births'].sum().reset_index()
@@ -180,21 +190,35 @@ def update_graph(value, s_ids, rate, alt_names):
                     z.append(b_rate)
                     locations.append(state_dict[state])
 
-                map_fig.add_trace(go.Choropleth(
-                    locations=locations,
-                    z=z,
-                    hovertext=text,
-                    hoverinfo='text',
-                    locationmode='USA-states',
-                    colorscale='cividis',
-                    colorbar_title='Peak Birth Rate',
-                    marker_line_color='white'
-                ))
+                if log_color:
+                    map_fig.add_trace(go.Choropleth(
+                        locations=locations,
+                        z=np.nan_to_num(np.log10(z)),
+                        hovertext=text,
+                        hoverinfo='text',
+                        locationmode='USA-states',
+                        colorscale='cividis',
+                        zmin=0,
+                        zmax=3,
+                        colorbar=dict(tickvals=[0,1,2,3], ticktext=['0','10','100','1000']),
+                        colorbar_title='Peak Birth Rate (Log10)',
+                        marker_line_color='white'
+                    ))
+                else:
+                    map_fig.add_trace(go.Choropleth(
+                        locations=locations,
+                        z=z,
+                        hovertext=text,
+                        hoverinfo='text',
+                        locationmode='USA-states',
+                        colorscale='cividis',
+                        colorbar_title='Peak Birth Rate',
+                        marker_line_color='white'
+                    ))
                 map_fig.update_layout(
                     title_text=f'Peak "{val}" Popularity by State',
                     geo_scope='usa'
                 )
-
             
             # If state(s) is selected
             if s_ids:
@@ -244,6 +268,7 @@ def update_graph(value, s_ids, rate, alt_names):
 
     else:
         return [initial_fig, initial_map, None]
+
 
 
 if __name__ == '__main__':
