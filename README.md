@@ -11,6 +11,7 @@
 - To work with SQL, PostgreSQL, and SQLAlchemy.
 - To create data visualizations.
 - To better understand dashboarding.
+- To work more with regex.
 
 ## Notes:
 - A name is searchable if it has made the top 100 baby names of any state (and District of Columbia) from 1960 through 2019.
