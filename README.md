@@ -8,7 +8,9 @@
   - Recent Decade US Populations (by state): [US Census Bureau](https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html)
 
 ## Purpose:
-Visualizations for the most popular baby names in the United States by state by year.
+- To work with SQL, PostgreSQL, and SQLAlchemy.
+- To create data visualizations.
+- To better understand dashboarding.
 
 ## Notes:
 - A name is searchable if it has made the top 100 baby names of any state (and District of Columbia) from 1960 through 2019.
